@@ -9,6 +9,7 @@ PM> Install-Package CsvReaderWriter
 ```
 
 ## 使い方
+### C#
 ``` cs
 class TestClass : CsvReaderWriter.ICsvReaderValidator
 {
@@ -74,6 +75,63 @@ class Program
         }
     }
 }
+```
+
+### VB.NET
+``` vb
+Public Class TestClass
+    Implements ICsvReaderValidator
+
+    <CsvReaderWriter.Attributes.CsvColumn(0, ColumnName:="Name1")>
+    <CsvReaderWriter.Attributes.CsvKey(1, "Column1Key")>
+    Public Property Column1 As String
+
+    <CsvReaderWriter.Attributes.CsvColumn(1, ColumnName:="Name2")>
+    <Required>
+    Public Property Column2 As String
+
+    <CsvReaderWriter.Attributes.CsvColumn(2, ColumnName:="Name3")>
+    Public Property Column3 As Decimal
+
+    <CsvReaderWriter.Attributes.CsvColumn(3, ColumnName:="Name4")>
+    Public Property Column4 As Integer?
+
+    Public Function Validate(ByRef propertyName As String, ByRef errorMessage As String) As Boolean Implements ICsvReaderValidator.Validate
+        Return True
+    End Function
+End Class
+
+Module Module
+    Sub Main()
+
+        Dim reader = New CsvReaderWriter.CsvReader(Of TestClass)
+        Using stream As New StreamReader("hoge.csv")
+            reader.ReadWithAllValidate(stream)
+
+            For Each er In reader.Errors
+                Console.WriteLine("行:{0} 列:{1} 列名:{2} 内容:{3} エラー:{4} 例外:{5}",
+                				  er.RowIndex, er.ColumnIndex, er.ColumnName, er.FieldValue, er.ErrorMessage, er.Exception?.Message)
+            Next
+
+            For Each c In reader.RawResults.Keys
+                Dim r = reader.RawResults(c)
+                Console.WriteLine("行:{0} 列1:{1} 列2:{2} 列3:{3} 列4:{4}",
+                				  c, r.Column1, r.Column2, r.Column3, r.Column4)
+            Next
+
+            For Each c In reader.Results.Keys
+                Dim r = reader.Results(c)
+                Console.WriteLine("行:{0} 列1:{1} 列2:{2} 列3:{3} 列4:{4}",
+                				  c, r.Column1, r.Column2, r.Column3, r.Column4)
+            Next
+        End Using
+
+        Dim writer As New CsvReaderWriter.CsvWriter(Of TestClass)
+        Using stream As New StreamWriter("huga.csv")
+            writer.Write(stream, results)
+        End Using
+    End Sub
+End Module
 ```
 
 ## License
